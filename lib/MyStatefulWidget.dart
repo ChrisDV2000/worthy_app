@@ -18,13 +18,15 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   static const minSeconds = 0;
   int seconds = minSeconds;
   Duration duration = Duration();
+  var maxTime = 1;
   Timer? timer;
 
   @override
   void initState(){
     super.initState();
 
-    startTimer();
+    startTimer(); //start timer on startup
+    
   }
 
   void addTime() {
@@ -37,21 +39,27 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     });
   }
 
-  void resetTimer() => setState(() => seconds = minSeconds);
+  void saveTime() {
+    if (duration.inMicroseconds > maxTime) {
+      maxTime = duration.inMicroseconds;
+      resetTimer();
+    }
+    else {
+      resetTimer();
+    }
+  }
+
+  void resetTimer() {
+    setState(() {
+      final seconds = minSeconds;
+
+      duration = Duration(seconds: seconds);
+    });
+  }
 
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
   }
-
-  void stopTimer({bool reset = true}) {
-    if (reset) {
-      resetTimer();
-    }
-
-    timer?.cancel();
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +84,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     final hours = twoDigits(duration.inHours.remainder(60));
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    var maxTime = 1;
     final Percentage = double.parse((percentage(duration.inMicroseconds, maxTime)).toStringAsFixed(1));
     
 
@@ -120,11 +127,11 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         buildTimeCard(time: days, header: 'DAYS'),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 5),
                         buildTimeCard(time: hours, header: 'HOURS'),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 5),
                         buildTimeCard(time: minutes, header: 'MINUTES'),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 5),
                         buildTimeCard(time: seconds, header: 'SECONDS'),
                       ],
                     ),
@@ -134,7 +141,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      buildButtons(),
+                      Padding(
+                        padding: EdgeInsets.only(top: 20),
+                        child: buildButtons(),
+                      ),
                     ],
                   ),
                 ),
@@ -201,32 +211,11 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   );
 
   Widget buildButtons() {
-    final isRunning = timer == null ? false : timer!.isActive;
-
-    return isRunning 
-    ? Row( 
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ButtonWidget(
-            text: 'Pause',
-            onClicked: () {
-              stopTimer();
-            },
-          ),
-          const SizedBox(width: 12),
-          ButtonWidget(
-            text: 'Reset',
-            onClicked: () {
-              stopTimer();
-            },
-          ),
-        ],
-      )
-    : ButtonWidget(
-        text: 'Start Timer!',
-        onClicked: () {
-          startTimer();
-        },
-      );
+    return ButtonWidget(
+      text: 'Reset',
+      onClicked: () {
+        saveTime();
+      },
+    );
   }
 }
