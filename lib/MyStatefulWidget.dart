@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:worthy_app/widget/button_widget.dart';
 
 /// This is the stateful widget that the main application instantiates.
 class MyStatefulWidget extends StatefulWidget {
@@ -14,6 +15,8 @@ class MyStatefulWidget extends StatefulWidget {
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
+  static const minSeconds = 0;
+  int seconds = minSeconds;
   Duration duration = Duration();
   Timer? timer;
 
@@ -34,18 +37,17 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     });
   }
 
+  void resetTimer() => setState(() => seconds = minSeconds);
+
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
   }
 
-  double percentage(currentTime, maxTime) {
-    if (duration.inMicroseconds < maxTime) {
-      return duration.inMicroseconds / maxTime;
-    }
-    else{
-      return 1.0;
-    }
+  void stopTimer() {
+    resetTimer();
+    timer?.cancel();
   }
+
 
 
   @override
@@ -56,14 +58,24 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
   Widget buildTime() {
+
+  double percentage(currentTime, maxTime) {
+    if (duration.inMicroseconds < maxTime) {
+      return (duration.inMicroseconds / maxTime) * 100;
+    }
+    else{
+      return 100.0;
+    }
+  }
+
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final days = twoDigits(duration.inDays.remainder(24));
     final hours = twoDigits(duration.inHours.remainder(60));
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    double percentage = (duration.inMicroseconds/ 30000000)*100;
-    final Percentage = double.parse((percentage).toStringAsFixed(1));
-    final maxTime = 1;
+    var maxTime = 1;
+    final Percentage = double.parse((percentage(duration.inMicroseconds, maxTime)).toStringAsFixed(1));
+    
 
     return Scaffold(
       backgroundColor: Color(0xFFFFFFFF),
@@ -82,10 +94,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                   child: Padding(
                     padding: EdgeInsets.only(top: 50.0),
                       child: CircularPercentIndicator(
-                        percent: percentage,
+                        percent: percentage(duration.inMicroseconds, maxTime) / 100,
                         radius: 0.5*MediaQuery.of(context).size.width,
                         lineWidth: 20.0,
-                        circularStrokeCap: CircularStrokeCap.butt,
+                        circularStrokeCap: CircularStrokeCap.round,
                         center: new Text(
                           '$Percentage%',
                           style: TextStyle(
@@ -113,10 +125,14 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                         buildTimeCard(time: seconds, header: 'SECONDS'),
                       ],
                     ),
-                  // Text(
-                  //   '$hours:$minutes:$seconds',
-                  //   style: TextStyle(fontSize: 80),
-                  // ),
+                  ),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      buildButtons(),
+                    ],
                   ),
                 ),
               ],
@@ -181,4 +197,16 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     ],
   );
 
+  Widget buildButtons() {
+    final isRunning = timer == null ? false : timer!.isActive;
+
+    return Container(
+      child: ButtonWidget(
+        text: 'Reset',
+        onClicked: () {
+          stopTimer();
+        },
+      ),
+    );
+  }
 }
