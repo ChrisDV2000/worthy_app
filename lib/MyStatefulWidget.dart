@@ -20,6 +20,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   Duration duration = Duration();
   var maxTime = 1;
   Timer? timer;
+  var dt = DateTime.now();
 
   @override
   void initState(){
@@ -148,6 +149,10 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child:Text('Last fall was at: $dt'),
+                ),
               ],
             ),
           ),
@@ -214,6 +219,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     return ButtonWidget(
       text: 'Reset',
       onClicked: () {
+        dt = DateTime.now();
         saveTime();
       },
     );
