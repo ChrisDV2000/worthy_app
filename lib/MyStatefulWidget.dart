@@ -43,8 +43,11 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
   }
 
-  void stopTimer() {
-    resetTimer();
+  void stopTimer({bool reset = true}) {
+    if (reset) {
+      resetTimer();
+    }
+
     timer?.cancel();
   }
 
@@ -200,13 +203,30 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   Widget buildButtons() {
     final isRunning = timer == null ? false : timer!.isActive;
 
-    return Container(
-      child: ButtonWidget(
-        text: 'Reset',
+    return isRunning 
+    ? Row( 
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ButtonWidget(
+            text: 'Pause',
+            onClicked: () {
+              stopTimer();
+            },
+          ),
+          const SizedBox(width: 12),
+          ButtonWidget(
+            text: 'Reset',
+            onClicked: () {
+              stopTimer();
+            },
+          ),
+        ],
+      )
+    : ButtonWidget(
+        text: 'Start Timer!',
         onClicked: () {
-          stopTimer();
+          startTimer();
         },
-      ),
-    );
+      );
   }
 }
